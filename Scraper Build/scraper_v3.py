@@ -83,7 +83,7 @@ def scrape_service_detail(service_link):
     detail_url = f"{service_link}"
     
     response = requests.get(detail_url)
-    response.raise_for_status()  # This will raise an HTTPError for bad responses
+    response.raise_for_status()
 
     soup = BeautifulSoup(response.text, 'html.parser')
 
