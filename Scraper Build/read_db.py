@@ -1,6 +1,6 @@
 import pandas as pd
 from sqlmodel import create_engine, Session, select
-from scraper_v4 import Service, ServiceDetail, Standorte, StandorteServices
+from scraper_v4 import Service, ServiceDetail, Standorte, StandorteServices, Formular
 
 def display_services():
     engine = create_engine('sqlite:///services.db')
@@ -14,6 +14,10 @@ def display_services():
         service_details = session.exec(select(ServiceDetail)).all()
         service_details_df = pd.DataFrame([detail.dict() for detail in service_details])
         
+        # Fetch all formulare
+        formulare = session.exec(select(Formular)).all()
+        formulare_df = pd.DataFrame([formular.dict() for formular in formulare])
+
         # Fetch all standorte
         standorte = session.exec(select(Standorte)).all()
         standorte_df = pd.DataFrame([standort.dict() for standort in standorte])
@@ -29,6 +33,8 @@ def display_services():
         print(services_df)
         print("\nService Details:")
         print(service_details_df)
+        print("\nFormulare:")
+        print(formulare_df)
         print("\nStandorte:")
         print(standorte_df)
         print("\nStandorte-Services Relationships:")

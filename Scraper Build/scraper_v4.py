@@ -4,12 +4,6 @@ from sqlmodel import SQLModel, Field, create_engine, Session, select, Relationsh
 from tqdm import tqdm
 from typing import List, Optional
 
-class ServiceDetail(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    service_id: int = Field(foreign_key="service.id")
-    title: str
-    description: str 
-
 class StandorteServices(SQLModel, table=True):
     standort_id: int = Field(foreign_key="standorte.id", primary_key=True)
     service_id: int = Field(foreign_key="service.id", primary_key=True)
@@ -18,7 +12,14 @@ class Service(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     service_name: str
     link: str
+    can_be_done_online: bool = Field(default=False)  # New field for online processing
     standorte: List["Standorte"] = Relationship(back_populates="services", link_model=StandorteServices)
+
+class ServiceDetail(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    service_id: int = Field(foreign_key="service.id")
+    title: str
+    description: str
 
 class Standorte(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
@@ -31,18 +32,30 @@ class Standorte(SQLModel, table=True):
     homepage: Optional[str] = None
     services: List[Service] = Relationship(back_populates="standorte", link_model=StandorteServices)
 
+class Formular(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    service_id: int = Field(foreign_key="service.id")
+    title: str
+    url: str
+
 
 def create_db_and_tables(engine):
     SQLModel.metadata.create_all(engine)
 
-def upsert_data(session, service_id, service_name, service_link):
+def upsert_data(session, service_id, service_name, service_link, can_be_done_online):
     existing_service = session.get(Service, service_id)
     if existing_service:
         existing_service.service_name = service_name
         existing_service.link = service_link
+        existing_service.can_be_done_online = can_be_done_online
         session.add(existing_service)
     else:
-        new_service = Service(id=service_id, service_name=service_name, link=service_link)
+        new_service = Service(
+            id=service_id,
+            service_name=service_name,
+            link=service_link,
+            can_be_done_online=can_be_done_online
+        )
         session.add(new_service)
     session.commit()
 
@@ -59,6 +72,12 @@ def upsert_service_detail(session, service_id, detail):
             description=detail['description']
         )
         session.add(new_detail)
+    session.commit()
+
+def upsert_formular(session, service_id, title, url):
+    # Insert new formular record
+    new_formular = Formular(service_id=service_id, title=title, url=url)
+    session.add(new_formular)
     session.commit()
 
 def scrape_service_detail(service_link):
@@ -83,12 +102,27 @@ def scrape_service_detail(service_link):
     else:
         description = ""
 
+    # Check if the service can be done online
+    can_be_done_online = bool(soup.find('h2', id='Online-Abwicklung'))
+
+    # Extract forms if present
+    formular_section = soup.find('h2', class_='title', string='Formulare')
+    if formular_section:
+        formular_list = formular_section.find_next('ul', class_='list-clean')
+        if formular_list:
+            formular_links = formular_list.find_all('a')
+            formulars = [{'title': link.text.strip(), 'url': link['href']} for link in formular_links]
+        else:
+            formulars = []
+    else:
+        formulars = []
+
     details = {
         'title': title,
         'description': description,
     }
 
-    return details
+    return details, can_be_done_online, formulars
 
 def scrape_services():
     url = 'https://service.berlin.de/dienstleistungen/'
@@ -109,11 +143,15 @@ def scrape_services():
                 service_name = service.find('a').text.strip()
                 service_id = int(service_link.split('/')[-2])
 
-                upsert_data(session, service_id, service_name, service_link)
-
-                # Scrape service details and save them
-                service_detail = scrape_service_detail(service_link)
+                # Scrape service details and online status
+                service_detail, can_be_done_online, formulars = scrape_service_detail(service_link)
+                
+                upsert_data(session, service_id, service_name, service_link, can_be_done_online)
                 upsert_service_detail(session, service_id, service_detail)
+
+                # Insert any found forms into the database
+                for formular in formulars:
+                    upsert_formular(session, service_id, formular['title'], formular['url'])
 
 def upsert_standorte_data(session, standort_id, name, link, address=None, phone=None, fax=None, email=None, homepage=None):
     existing_standort = session.get(Standorte, standort_id)
@@ -229,7 +267,6 @@ def scrape_standorte():
                         # Link services to this Standort
                         for service_id in service_relations:
                             link_service_to_standort(session, standort_id, service_id)
-
 
 if __name__ == "__main__":
     scrape_services()
