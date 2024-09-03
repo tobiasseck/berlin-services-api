@@ -4,3 +4,7 @@ sqlmodel
 tdqm
 pandas
 openpyxl
+fastapi
+uvicorn
+jinja2
+typesense
