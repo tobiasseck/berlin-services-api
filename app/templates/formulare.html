@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">Formulare</h1>
+
+    <input type="text" id="formular-search" class="border p-2 w-full mb-4" placeholder="Search forms..." />
+
+    <div id="formular-list">
+        {% for formular in formulare %}
+        <div class="bg-white p-4 rounded-lg shadow-lg mb-4">
+            <h2 class="text-xl font-bold">{{ formular.title }}</h2>
+            <p><a href="{{ formular.url }}" class="text-blue-500" target="_blank">Download</a></p>
+            <button class="text-blue-500 view-formular" data-formular-id="{{ formular.id }}">View Details</button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

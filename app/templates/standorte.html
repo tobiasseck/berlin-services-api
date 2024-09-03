@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">Standorte</h1>
+
+    <input type="text" id="standorte-search" class="border p-2 w-full mb-4" placeholder="Search standorte..." />
+
+    <div id="standorte-list">
+        {% for standort in standorte %}
+        <div class="bg-white p-4 rounded-lg shadow-lg mb-4">
+            <h2 class="text-xl font-bold">{{ standort.name }}</h2>
+            <p class="text-gray-700">{{ standort.address.replace(',', ', ') }}</p>
+            <button class="text-blue-500 view-standort" data-standort-id="{{ standort.id }}">View Details</button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

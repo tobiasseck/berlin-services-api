@@ -1,0 +1,12 @@
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold mb-4">{{ service.service_name }}</h1>
+    <p><strong>Description:</strong> {{ service.description | safe }}</p>
+    <p><strong>Online Available:</strong> {{ "Yes" if service.can_be_done_online else "No" }}</p>
+    
+    <h2 class="text-2xl font-bold mt-6 mb-4">Available at these locations:</h2>
+    <ul>
+        {% for standort in service.standorte %}
+        <li><a href="/standorte/{{ standort.id }}" class="text-blue-500 view-standort" data-standort-id="{{ standort.id }}">{{ standort.name }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
