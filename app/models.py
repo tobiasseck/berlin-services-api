@@ -15,6 +15,7 @@ class Service(SQLModel, table=True):
     link: str
     can_be_done_online: bool = Field(default=False)
     standorte: List["Standorte"] = Relationship(back_populates="services", link_model=StandorteServices)
+    formulars: Optional[List["Formular"]] = Relationship(back_populates="service")
 
 class Standorte(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
@@ -31,15 +32,27 @@ class ServiceDetail(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     service_id: int = Field(foreign_key="service.id")
     title: str
-    description: str
+    description: Optional[str] 
 
 class Formular(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     service_id: int = Field(foreign_key="service.id")
+    service: Optional[Service] = Relationship(back_populates="formulars")
     title: str
     url: str
+
+class User(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str
+    hashed_password: str
+    disabled: bool = False
+
 
 engine = create_engine(f"sqlite:///{DB_PATH}")
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+
+def get_session():
+    with Session(engine) as session:
+        yield session    

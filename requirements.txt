@@ -8,3 +8,8 @@ fastapi
 uvicorn
 jinja2
 typesense
+pyjwt
+python-multipart
+passlib[bcrypt]
+python-jose[cryptography]
+python-dotenv

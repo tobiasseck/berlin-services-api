@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(error => console.error('Error loading service details:', error));
         });
     });
+
     // Function to fetch and display standort details
     document.querySelectorAll('.view-standort').forEach(function(button) {
         button.addEventListener('click', function() {
@@ -39,10 +40,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Close modals
+    serviceModalClose.addEventListener('click', function() {
+        serviceModal.classList.add('hidden');
+    });
+
     standortModalClose.addEventListener('click', function() {
         standortModal.classList.add('hidden');
     });
 
+    formularModalClose.addEventListener('click', function() {
+        formularModal.classList.add('hidden');
+    });
+
+    // Close modals on clicking outside the modal content
+    document.addEventListener('click', function(event) {
+        if (!serviceModalContent.contains(event.target) && !serviceModal.classList.contains('hidden')) {
+            serviceModal.classList.add('hidden');
+        }
+        if (!standortModalContent.contains(event.target) && !standortModal.classList.contains('hidden')) {
+            standortModal.classList.add('hidden');
+        }
+        if (!formularModalContent.contains(event.target) && !formularModal.classList.contains('hidden')) {
+            formularModal.classList.add('hidden');
+        }
+    });
+
+    // Initialize the map after modal is visible
     function initializeMap(standortId) {
         const mapElement = document.getElementById('map' + standortId);
         if (mapElement) {
@@ -103,57 +127,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Close modals on clicking the close button
-    serviceModalClose.addEventListener('click', function() {
-        serviceModal.classList.add('hidden');
-    });
+    // Functionality to filter services based on search input and online availability
+    const serviceSearchInput = document.getElementById('service-search');
+    const onlineAvailableCheckbox = document.getElementById('online-available');
 
-    standortModalClose.addEventListener('click', function() {
-        standortModal.classList.add('hidden');
-    });
+    serviceSearchInput.addEventListener('input', filterServices);
+    onlineAvailableCheckbox.addEventListener('change', filterServices);
 
-    formularModalClose.addEventListener('click', function() {
-        formularModal.classList.add('hidden');
-    });
+    function filterServices() {
+        const searchValue = serviceSearchInput.value.toLowerCase();
+        const isOnlineAvailable = onlineAvailableCheckbox.checked;
 
-    // Close modals on clicking outside the modal content
-    document.addEventListener('click', function(event) {
-        if (!serviceModalContent.contains(event.target) && !serviceModal.classList.contains('hidden')) {
-            serviceModal.classList.add('hidden');
-        }
-        if (!standortModalContent.contains(event.target) && !standortModal.classList.contains('hidden')) {
-            standortModal.classList.add('hidden');
-        }
-        if (!formularModalContent.contains(event.target) && !formularModal.classList.contains('hidden')) {
-            formularModal.classList.add('hidden');
-        }
-    });
+        document.querySelectorAll('#service-list > div').forEach(function(service) {
+            const serviceName = service.querySelector('h2').textContent.toLowerCase();
+            const canBeDoneOnline = service.querySelector('p').textContent.includes('Yes');
 
-    // Initialize the map after modal is visible
-    function initializeMap(standortId) {
-        const mapElement = document.getElementById('map' + standortId);
-        if (mapElement) {
-            const address = mapElement.getAttribute('data-address');
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        const lat = data[0].lat;
-                        const lon = data[0].lon;
-
-                        const map = L.map(mapElement).setView([lat, lon], 15);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        }).addTo(map);
-                        L.marker([lat, lon]).addTo(map)
-                            .bindPopup('<b>' + mapElement.getAttribute('data-name') + '</b><br />' + address).openPopup();
-                    } else {
-                        mapElement.innerHTML = "Address not found!";
-                    }
-                })
-                .catch(error => console.error('Error fetching the coordinates:', error));
-        }
+            if (
+                serviceName.includes(searchValue) &&
+                (!isOnlineAvailable || canBeDoneOnline)
+            ) {
+                service.classList.remove('hidden');
+            } else {
+                service.classList.add('hidden');
+            }
+        });
     }
 });

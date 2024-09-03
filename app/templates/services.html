@@ -4,8 +4,16 @@
 <div class="max-w-4xl mx-auto">
     <h1 class="text-3xl font-bold mb-6">Services</h1>
     
+    <!-- Search Input -->
     <input type="text" id="service-search" class="border p-2 w-full mb-4" placeholder="Search services..." />
 
+    <!-- Online Availability Filter -->
+    <div class="flex items-center mb-4">
+        <input id="online-available" name="online_available" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+        <label for="online-available" class="ml-2 block text-sm text-gray-900">Online Available</label>
+    </div>
+
+    <!-- Services List -->
     <div id="service-list">
         {% for service in services %}
         <div class="bg-white p-4 rounded-lg shadow-lg mb-4">

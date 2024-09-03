@@ -23,4 +23,3 @@ async def standort_detail(request: Request, standort_id: int):
         if not standort:
             raise HTTPException(status_code=404, detail="Standort not found")
     return templates.TemplateResponse("standort_detail.html", {"request": request, "standort": standort})
-
