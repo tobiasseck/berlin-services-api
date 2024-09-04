@@ -83,7 +83,7 @@ berlin-services-api/
 1. Clone the repository:
    ```
    git clone https://github.com/tobiasseck/berlin-services-api.git
-   
+
    cd berlin-services-api
    ```
 
@@ -155,7 +155,6 @@ Example of the scraper in action:
 ![Scraper in Action](./images/scraping.png)
 
 ## Database
-
 The project uses SQLite with SQLModel ORM for data storage. The database schema is defined in the `app/models/` directory. Key models include:
 
 - `Service`: Represents a city service
